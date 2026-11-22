@@ -18,7 +18,10 @@ export async function addTodo(title: string) {
   const { error } = await supabase
     .from("todos")
     .insert({ user_id: user.id, title: trimmed });
-  if (error) throw new Error(error.message);
+  if (error) {
+    console.error("[addTodo] supabase insert error:", error);
+    throw new Error(error.message);
+  }
   revalidatePath("/todos");
 }
 
@@ -31,7 +34,10 @@ export async function toggleTodo(id: string, is_done: boolean) {
     .update({ is_done })
     .eq("id", id)
     .eq("user_id", user.id);
-  if (error) throw new Error(error.message);
+  if (error) {
+    console.error("[toggleTodo] supabase update error:", error);
+    throw new Error(error.message);
+  }
   revalidatePath("/todos");
 }
 
@@ -46,7 +52,10 @@ export async function editTodo(id: string, title: string) {
     .update({ title: trimmed })
     .eq("id", id)
     .eq("user_id", user.id);
-  if (error) throw new Error(error.message);
+  if (error) {
+    console.error("[editTodo] supabase update error:", error);
+    throw new Error(error.message);
+  }
   revalidatePath("/todos");
 }
 
@@ -59,6 +68,9 @@ export async function deleteTodo(id: string) {
     .delete()
     .eq("id", id)
     .eq("user_id", user.id);
-  if (error) throw new Error(error.message);
+  if (error) {
+    console.error("[deleteTodo] supabase delete error:", error);
+    throw new Error(error.message);
+  }
   revalidatePath("/todos");
 }

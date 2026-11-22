@@ -13,17 +13,18 @@ export default function SignupPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [emailSent, setEmailSent] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     setError(null);
     const supabase = createClient();
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        emailRedirectTo: "https://todoapp-nine-rho.vercel.app/login",
+        emailRedirectTo: `${window.location.origin}/login`,
       },
     });
     if (error) {
@@ -31,8 +32,14 @@ export default function SignupPage() {
       setLoading(false);
       return;
     }
-    router.push("/todos");
-    router.refresh();
+    if (data.session) {
+      router.push("/todos");
+      router.refresh();
+    } else {
+      // mailer_autoconfirm=false: chờ xác nhận email, không có session ngay lập tức.
+      setEmailSent(true);
+      setLoading(false);
+    }
   }
 
   return (
@@ -115,6 +122,19 @@ export default function SignupPage() {
               <AlertIcon width={16} height={16} />
             </span>
             <span>{error}</span>
+          </div>
+        )}
+
+        {emailSent && (
+          <div
+            className="flex items-start gap-2 rounded-xl px-3 py-2.5 text-sm"
+            style={{ background: "var(--success-soft)", color: "var(--success)" }}
+            role="status"
+          >
+            <span className="mt-0.5 flex-none">
+              <MailIcon width={16} height={16} />
+            </span>
+            <span>Đã gửi liên kết xác nhận. Vui lòng kiểm tra email của bạn và nhấn vào liên kết để kích hoạt tài khoản, sau đó đăng nhập.</span>
           </div>
         )}
 
