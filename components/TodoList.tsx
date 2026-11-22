@@ -28,7 +28,12 @@ export default function TodoList({ initialTodos }: { initialTodos: Todo[] }) {
     setTodos((prev) => [temp, ...prev]);
     setTitle("");
     startTransition(async () => {
-      await addTodo(t);
+      try {
+        await addTodo(t);
+      } catch (err) {
+        setTodos((prev) => prev.filter((x) => x.id !== temp.id));
+        alert(err instanceof Error ? err.message : "Thêm công việc thất bại.");
+      }
     });
   }
 
@@ -136,17 +141,44 @@ export default function TodoList({ initialTodos }: { initialTodos: Todo[] }) {
                 setTodos((prev) =>
                   prev.map((x) => (x.id === t.id ? { ...x, is_done: v } : x))
                 );
-                startTransition(() => toggleTodo(t.id, v));
+                startTransition(async () => {
+                  try {
+                    await toggleTodo(t.id, v);
+                  } catch (err) {
+                    setTodos((prev) =>
+                      prev.map((x) => (x.id === t.id ? { ...x, is_done: !v } : x))
+                    );
+                    alert(err instanceof Error ? err.message : "Cập nhật thất bại.");
+                  }
+                });
               }}
               onEdit={(nt) => {
                 setTodos((prev) =>
                   prev.map((x) => (x.id === t.id ? { ...x, title: nt } : x))
                 );
-                startTransition(() => editTodo(t.id, nt));
+                startTransition(async () => {
+                  try {
+                    await editTodo(t.id, nt);
+                  } catch (err) {
+                    setTodos((prev) =>
+                      prev.map((x) => (x.id === t.id ? { ...x, title: t.title } : x))
+                    );
+                    alert(err instanceof Error ? err.message : "Cập nhật thất bại.");
+                  }
+                });
               }}
               onDelete={() => {
                 setTodos((prev) => prev.filter((x) => x.id !== t.id));
-                startTransition(() => deleteTodo(t.id));
+                startTransition(async () => {
+                  try {
+                    await deleteTodo(t.id);
+                  } catch (err) {
+                    setTodos((prev) =>
+                      [...prev, { id: t.id, title: t.title, is_done: false }]
+                    );
+                    alert(err instanceof Error ? err.message : "Xóa thất bại.");
+                  }
+                });
               }}
             />
           ))}
