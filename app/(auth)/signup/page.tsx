@@ -2,7 +2,10 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import AuthShell from "@/components/AuthShell";
+import { AlertIcon, LockIcon, MailIcon } from "@/components/icons";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -16,7 +19,13 @@ export default function SignupPage() {
     setLoading(true);
     setError(null);
     const supabase = createClient();
-    const { error } = await supabase.auth.signUp({ email, password });
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo: "https://todoapp-nine-rho.vercel.app/login",
+      },
+    });
     if (error) {
       setError(error.message);
       setLoading(false);
@@ -27,19 +36,96 @@ export default function SignupPage() {
   }
 
   return (
-    <main className="mx-auto max-w-sm p-6">
-      <h1 className="text-2xl font-bold mb-4">Sign up</h1>
-      <form onSubmit={handleSubmit} className="space-y-3">
-        <input className="w-full border rounded p-2" type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-        <input className="w-full border rounded p-2" type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} />
-        {error && <p className="text-red-600 text-sm">{error}</p>}
-        <button disabled={loading} className="w-full bg-black text-white rounded p-2 disabled:opacity-50">
-          {loading ? "..." : "Sign up"}
+    <AuthShell
+      eyebrow="Get started"
+      title="Create your account"
+      subtitle="Start clearing your mind, one task at a time."
+      footer={
+        <>
+          Already have an account?{" "}
+          <Link
+            href="/login"
+            className="font-semibold underline-offset-4 hover:underline"
+            style={{ color: "var(--accent)" }}
+          >
+            Log in
+          </Link>
+        </>
+      }
+    >
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label htmlFor="email" className="mb-1.5 block text-sm font-medium">
+            Email
+          </label>
+          <div className="relative">
+            <span
+              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2"
+              style={{ color: "var(--faint)" }}
+            >
+              <MailIcon />
+            </span>
+            <input
+              id="email"
+              className="text-input"
+              style={{ paddingLeft: "2.5rem" }}
+              type="email"
+              autoComplete="email"
+              placeholder="you@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </div>
+        </div>
+
+        <div>
+          <label htmlFor="password" className="mb-1.5 block text-sm font-medium">
+            Password
+          </label>
+          <div className="relative">
+            <span
+              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2"
+              style={{ color: "var(--faint)" }}
+            >
+              <LockIcon />
+            </span>
+            <input
+              id="password"
+              className="text-input"
+              style={{ paddingLeft: "2.5rem" }}
+              type="password"
+              autoComplete="new-password"
+              placeholder="At least 6 characters"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              minLength={6}
+              required
+            />
+          </div>
+        </div>
+
+        {error && (
+          <div
+            className="flex items-start gap-2 rounded-xl px-3 py-2.5 text-sm"
+            style={{ background: "var(--danger-soft)", color: "var(--danger)" }}
+            role="alert"
+          >
+            <span className="mt-0.5 flex-none">
+              <AlertIcon width={16} height={16} />
+            </span>
+            <span>{error}</span>
+          </div>
+        )}
+
+        <button
+          disabled={loading}
+          className="btn-primary w-full"
+          style={{ padding: "0.7rem 1rem" }}
+        >
+          {loading ? "Creating account…" : "Create account"}
         </button>
       </form>
-      <p className="mt-4 text-sm">
-        Have an account? <a href="/login" className="underline">Log in</a>
-      </p>
-    </main>
+    </AuthShell>
   );
 }

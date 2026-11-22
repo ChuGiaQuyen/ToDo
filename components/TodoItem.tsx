@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { PencilIcon, TrashIcon } from "@/components/icons";
 
 type Todo = { id: string; title: string; is_done: boolean };
 
@@ -18,25 +19,89 @@ export default function TodoItem({
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(todo.title);
 
+  function commit() {
+    const next = draft.trim();
+    if (next && next !== todo.title) {
+      onEdit(next);
+    } else {
+      setDraft(todo.title);
+    }
+    setEditing(false);
+  }
+
   return (
-    <li className="flex items-center gap-2 border rounded p-2">
-      <input type="checkbox" checked={todo.is_done} onChange={(e) => onToggle(e.target.checked)} />
+    <li className="todo-row" data-done={todo.is_done}>
+      <button
+        type="button"
+        className="check"
+        role="checkbox"
+        aria-checked={todo.is_done}
+        aria-label={
+          todo.is_done
+            ? `Mark "${todo.title}" as not done`
+            : `Mark "${todo.title}" as done`
+        }
+        data-checked={todo.is_done}
+        onClick={() => onToggle(!todo.is_done)}
+      >
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M20 6 9 17l-5-5" />
+        </svg>
+      </button>
+
       {editing ? (
         <input
-          className="flex-1 border rounded p-1"
+          className="text-input"
+          style={{ padding: "0.4rem 0.6rem", fontSize: "0.95rem" }}
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
-          onBlur={() => { onEdit(draft); setEditing(false); }}
-          onKeyDown={(e) => { if (e.key === "Enter") { onEdit(draft); setEditing(false); } }}
+          onBlur={commit}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") commit();
+            if (e.key === "Escape") {
+              setDraft(todo.title);
+              setEditing(false);
+            }
+          }}
           autoFocus
         />
       ) : (
-        <span className={`flex-1 ${todo.is_done ? "line-through text-gray-400" : ""}`} onDoubleClick={() => setEditing(true)}>
+        <span
+          className="todo-title"
+          onDoubleClick={() => {
+            setDraft(todo.title);
+            setEditing(true);
+          }}
+          title="Double-click to edit"
+        >
           {todo.title}
         </span>
       )}
-      <button onClick={() => setEditing(true)} className="text-sm">Edit</button>
-      <button onClick={onDelete} className="text-sm text-red-600">Delete</button>
+
+      {!editing && (
+        <div className="flex flex-none items-center gap-1">
+          <button
+            type="button"
+            className="icon-btn"
+            aria-label={`Edit "${todo.title}"`}
+            onClick={() => {
+              setDraft(todo.title);
+              setEditing(true);
+            }}
+          >
+            <PencilIcon width={16} height={16} />
+          </button>
+          <button
+            type="button"
+            className="icon-btn"
+            data-variant="danger"
+            aria-label={`Delete "${todo.title}"`}
+            onClick={onDelete}
+          >
+            <TrashIcon width={16} height={16} />
+          </button>
+        </div>
+      )}
     </li>
   );
 }
